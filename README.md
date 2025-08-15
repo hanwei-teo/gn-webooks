@@ -198,7 +198,7 @@ The pipeline is configured for StreamNative (Pulsar KoP) with:
 - **SASL_SSL** security protocol
 - **JWT token authentication**
 - **Schema registry** for AVRO schemas
-- **Topic**: `insights-testing.test-ingest.bugsnag`
+- **Topic**: `insights-testing.test-ingest.bugsnag9`
 
 ## 🐛 Dead Letter Queue (DLQ)
 
@@ -220,14 +220,20 @@ Failed messages are automatically saved to local files:
 
 ### DLQ Management
 ```bash
-# View all DLQ files with analysis
-./view_dlq.py
+# View all DLQ files
+ls -la dlq/
 
-# View specific DLQ file
-./view_dlq.py --file dlq/dlq_topic_timestamp.json
+# Count failed messages
+ls dlq/dlq_*.json 2>/dev/null | wc -l
+
+# Analyze DLQ error types
+grep -h "error_reason" dlq/dlq_*.json | sort | uniq -c | sort -nr
+
+# View specific DLQ entry
+cat dlq/dlq_20250815_170218_a780c3cb.json
 
 # Clear all DLQ files
-./view_dlq.py --clear
+rm -f dlq/dlq_*.json
 ```
 
 ### DLQ Statistics
@@ -251,31 +257,44 @@ Generates schema-compliant Bugsnag webhook events:
 
 ### Test Commands
 ```bash
-# Basic test suite (10 events)
-./run_webhook_test.sh
+# Basic test suite (100 events with 10% invalid payloads)
+uv run python test_bugsnag_end_to_end.py --count 100 --invalid 10
 
 # Custom test parameters
-python3 test_webhook.py --count 50 --delay 0.1
+uv run python test_bugsnag_end_to_end.py --count 1000 --invalid 15
 
-# Single event with full JSON output
-python3 test_webhook.py --single
-
-# Custom webhook endpoint
-python3 test_webhook.py --url http://production.example.com/webhook
+# Test against production endpoint
+uv run python test_bugsnag_end_to_end.py --url http://production.example.com/webhook/bugsnag
 ```
 
 ### Test Output
 ```
-🐛 Starting Bugsnag webhook test suite
-📡 Target URL: http://localhost:8080/webhook
-📊 Error events to send: 10
-⏱️  Delay between events: 1.0s
-============================================================
+🚀 Bugsnag Webhook End-to-End Test (with DLQ testing)
+==================================================
+📡 Target URL: http://localhost:8080/webhook/bugsnag
+📊 Messages to send: 1,000
+🎯 Invalid payloads: 15% (will trigger DLQ)
+⏱️  Delay between messages: 0.01s
+🎯 Expected duration: ~0.2 minutes
+==================================================
 
-🐛 [1/10] Sending TypeError error...
-   Error: Cannot read property 'data' of undefined...
-   Context: /dashboard/users
-   ✅ Success! (200) - 0.045s
+📊 [1,000/1,000] Progress: 97.8% success rate, 67.7 msg/s (Valid: 850, Invalid: 150)
+
+==================================================
+📈 BUGSNAG WEBHOOK TEST SUMMARY
+==================================================
+Total messages sent: 1,000
+Valid payloads: 850
+Invalid payloads: 150
+Successful webhook submissions: 978
+Failed webhook submissions: 22
+Webhook success rate: 97.8%
+Total time: 14.8s
+Average rate: 67.6 msg/s
+Expected vs Actual: 10.0s vs 14.8s
+
+💡 Invalid payloads should appear in DLQ for review
+✅ Bugsnag webhook test PASSED - Pipeline working correctly!
 ```
 
 ## 📁 Project Structure
@@ -296,9 +315,7 @@ gn-webooks/
 │   ├── Dockerfile
 │   └── producer.py             # AVRO Kafka producer with DLQ
 ├── dlq/                        # Dead Letter Queue files
-├── test_webhook.py             # Bugsnag webhook simulator
-├── run_webhook_test.sh         # Test runner script
-├── view_dlq.py                 # DLQ analysis tool
+├── test_bugsnag_end_to_end.py  # Bugsnag end-to-end test with DLQ
 └── README.md
 ```
 
@@ -338,14 +355,17 @@ For monitoring messages in StreamNative/Pulsar, use:
 
 ### DLQ Monitoring
 ```bash
-# Watch DLQ in real-time
-watch -n 2 './view_dlq.py'
-
 # Monitor DLQ directory
 ls -la dlq/
 
 # Count failed messages
 ls dlq/dlq_*.json 2>/dev/null | wc -l
+
+# Analyze DLQ error types
+grep -h "error_reason" dlq/dlq_*.json | sort | uniq -c | sort -nr
+
+# View specific DLQ entry
+cat dlq/dlq_20250815_170218_a780c3cb.json
 ```
 
 ## 🚀 Production Considerations
@@ -370,7 +390,7 @@ ls dlq/dlq_*.json 2>/dev/null | wc -l
 ## 📝 Development
 
 ### Adding New Event Types
-1. Update webhook generator in `test_webhook.py`
+1. Update webhook generator in `test_bugsnag_end_to_end.py`
 2. Ensure AVRO schema exists in registry
 3. Test with DLQ to catch validation issues
 
@@ -392,7 +412,7 @@ test = ["requests==2.31.0", "faker==20.1.0"]
 ### Local Development
 ```bash
 # Run tests with automatic dependency management
-uv run --group test test_webhook.py
+uv run --group test test_bugsnag_end_to_end.py
 
 # Install and run dependencies for development
 uv run --group dev python3 script.py

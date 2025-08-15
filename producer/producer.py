@@ -36,17 +36,18 @@ WEBHOOK_TYPE = os.environ.get('WEBHOOK_TYPE', 'bugsnag')
 REDIS_QUEUE = f"{WEBHOOK_QUEUE_PREFIX}_{WEBHOOK_TYPE}_queue"
 
 # Kafka Producer Configuration
-KAFKA_BATCH_SIZE = int(os.environ.get('KAFKA_BATCH_SIZE', '131072'))  # 128KB
-KAFKA_LINGER_MS = int(os.environ.get('KAFKA_LINGER_MS', '5'))
+# Conservative defaults suitable for most environments
+KAFKA_BATCH_SIZE = int(os.environ.get('KAFKA_BATCH_SIZE', '131072'))
+KAFKA_LINGER_MS = int(os.environ.get('KAFKA_LINGER_MS', '100'))
 KAFKA_COMPRESSION_TYPE = os.environ.get('KAFKA_COMPRESSION_TYPE', 'lz4')
 KAFKA_ACKS = os.environ.get('KAFKA_ACKS', '1')
 KAFKA_RETRIES = int(os.environ.get('KAFKA_RETRIES', '3'))
-KAFKA_MAX_IN_FLIGHT = int(os.environ.get('KAFKA_MAX_IN_FLIGHT', '10'))
+KAFKA_MAX_IN_FLIGHT = int(os.environ.get('KAFKA_MAX_IN_FLIGHT', '5'))
 KAFKA_QUEUE_MAX_MESSAGES = int(os.environ.get('KAFKA_QUEUE_MAX_MESSAGES', '10000'))
 KAFKA_QUEUE_MAX_KBYTES = int(os.environ.get('KAFKA_QUEUE_MAX_KBYTES', '32768'))
 KAFKA_SOCKET_SEND_BUFFER = int(os.environ.get('KAFKA_SOCKET_SEND_BUFFER', '262144'))
 KAFKA_SOCKET_RECEIVE_BUFFER = int(os.environ.get('KAFKA_SOCKET_RECEIVE_BUFFER', '131072'))
-KAFKA_BATCH_NUM_MESSAGES = int(os.environ.get('KAFKA_BATCH_NUM_MESSAGES', '100'))
+KAFKA_BATCH_NUM_MESSAGES = int(os.environ.get('KAFKA_BATCH_NUM_MESSAGES', '1000'))
 KAFKA_ENABLE_IDEMPOTENCE = os.environ.get('KAFKA_ENABLE_IDEMPOTENCE', 'false').lower() == 'true'
 
 class AVROKafkaProducer:

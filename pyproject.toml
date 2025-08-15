@@ -5,6 +5,7 @@ description = "Production-ready webhook processing pipeline with AVRO serializat
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
+    "fastavro>=1.9.4",
     "jsonschema>=4.25.0",
     "pandas>=2.3.1",
     "pyarrow>=21.0.0",
