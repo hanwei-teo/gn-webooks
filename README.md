@@ -95,10 +95,10 @@ docker-compose ps
 docker-compose logs -f producer
 
 # Quick test - 100 messages
-uv run python test_avro_end_to_end.py --count 100
+uv run python test_bugsnag_end_to_end.py --count 100
 
 # Larger test - 1,000 messages
-uv run python test_avro_end_to_end.py --count 1000
+uv run python test_bugsnag_end_to_end.py --count 1000
 
 # Test webhook endpoint manually
 curl -X POST http://localhost:8080/webhook \
@@ -144,13 +144,13 @@ ls -la dlq/
 
 ### Local Testing
 
-The repository includes an end-to-end test script for local development:
+The repository includes a Bugsnag-specific end-to-end test script for local development:
 
 ```bash
 # Test with different message counts
-uv run python test_avro_end_to_end.py --count 100    # Quick test
-uv run python test_avro_end_to_end.py --count 1000   # Medium test
-uv run python test_avro_end_to_end.py --count 10000  # Large test
+uv run python test_bugsnag_end_to_end.py --count 100    # Quick test
+uv run python test_bugsnag_end_to_end.py --count 1000   # Medium test
+uv run python test_bugsnag_end_to_end.py --count 10000  # Large test
 
 # Monitor test progress
 docker-compose logs -f producer

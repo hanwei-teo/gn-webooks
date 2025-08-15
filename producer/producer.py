@@ -29,7 +29,11 @@ KAFKA_SASL_PASSWORD = os.environ.get('KAFKA_SASL_PASSWORD')
 KAFKA_SASL_MECHANISM = os.environ.get('KAFKA_SASL_MECHANISM', 'PLAIN')
 KAFKA_TOPIC = os.environ.get('KAFKA_TOPIC', 'insights-testing.test-ingest.bugsnag7')
 SCHEMA_REGISTRY_URL = os.environ.get('SCHEMA_REGISTRY_URL')
-REDIS_QUEUE = 'webhook_queue'
+
+# Webhook configuration
+WEBHOOK_QUEUE_PREFIX = os.environ.get('WEBHOOK_QUEUE_PREFIX', 'webhook')
+WEBHOOK_TYPE = os.environ.get('WEBHOOK_TYPE', 'bugsnag')
+REDIS_QUEUE = f"{WEBHOOK_QUEUE_PREFIX}_{WEBHOOK_TYPE}_queue"
 
 # Kafka Producer Configuration
 KAFKA_BATCH_SIZE = int(os.environ.get('KAFKA_BATCH_SIZE', '131072'))  # 128KB

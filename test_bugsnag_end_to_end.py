@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-End-to-end test for AVRO schema validation with bugsnag7 topic.
-Tests the pipeline with AVRO schema instead of JSON Schema.
+End-to-end test for Bugsnag webhook pipeline with AVRO schema validation.
+Tests the complete pipeline: webhook → Redis → Kafka → Schema Registry.
 """
 
 import requests
@@ -13,8 +13,8 @@ from faker import Faker
 from datetime import datetime
 import argparse
 
-class AVROEndToEndTester:
-    def __init__(self, target_url="http://localhost:8080/webhook"):
+class BugsnagEndToEndTester:
+    def __init__(self, target_url="http://localhost:8080/webhook/bugsnag"):
         self.target_url = target_url
         self.fake = Faker()
         
@@ -110,7 +110,7 @@ class AVROEndToEndTester:
 
     def run_test(self, count=1000, delay=0.01):
         """Run the end-to-end test"""
-        print("🚀 AVRO Schema End-to-End Test")
+        print("🚀 Bugsnag Webhook End-to-End Test")
         print("=" * 50)
         print(f"📡 Target URL: {self.target_url}")
         print(f"📊 Messages to send: {count:,}")
@@ -150,7 +150,7 @@ class AVROEndToEndTester:
         avg_rate = count / total_time if total_time > 0 else 0
 
         print("\n" + "=" * 50)
-        print("📈 AVRO SCHEMA TEST SUMMARY")
+        print("📈 BUGSNAG WEBHOOK TEST SUMMARY")
         print("=" * 50)
         print(f"Total messages sent: {count:,}")
         print(f"Successful: {successful:,}")
@@ -161,19 +161,19 @@ class AVROEndToEndTester:
         print(f"Expected vs Actual: {count * delay:.1f}s vs {total_time:.1f}s")
 
         if success_rate >= 99.0:
-            print("✅ AVRO schema test PASSED - Pipeline working with AVRO schema!")
+            print("✅ Bugsnag webhook test PASSED - Pipeline working correctly!")
         else:
-            print("❌ AVRO schema test FAILED - Check producer logs for validation errors")
+            print("❌ Bugsnag webhook test FAILED - Check producer logs for validation errors")
 
 def main():
-    parser = argparse.ArgumentParser(description="AVRO Schema End-to-End Test")
+    parser = argparse.ArgumentParser(description="Bugsnag Webhook End-to-End Test")
     parser.add_argument("--count", type=int, default=1000, help="Number of messages to send")
     parser.add_argument("--delay", type=float, default=0.01, help="Delay between messages in seconds")
-    parser.add_argument("--url", default="http://localhost:8080/webhook", help="Target webhook URL")
+    parser.add_argument("--url", default="http://localhost:8080/webhook/bugsnag", help="Target webhook URL")
     
     args = parser.parse_args()
     
-    tester = AVROEndToEndTester(args.url)
+    tester = BugsnagEndToEndTester(args.url)
     tester.run_test(args.count, args.delay)
 
 if __name__ == "__main__":

@@ -82,7 +82,7 @@ curl -X POST http://localhost:8080/webhook \
   -d @samples/bugsnag_webhook_sample.json
 
 # Run end-to-end test (for development environments)
-uv run python test_avro_end_to_end.py --count 100
+uv run python test_bugsnag_end_to_end.py --count 100
 
 # Monitor logs
 docker-compose logs -f producer
