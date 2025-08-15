@@ -16,10 +16,10 @@ RUN pip install uv
 WORKDIR /app
 
 # Install Python dependencies
-RUN uv pip install --system confluent-kafka==2.5.0 redis==5.0.1 jsonschema==4.25.0
+RUN uv pip install --system confluent-kafka==2.5.0 redis==5.0.1 jsonschema==4.25.0 requests==2.31.0
 
-# Copy the JSON Schema producer
-COPY producer_json_schema.py producer.py
+# Copy the Schema Registry producer
+COPY producer.py producer.py
 
 # Create DLQ directory
 RUN mkdir -p /app/dlq

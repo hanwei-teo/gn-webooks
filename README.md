@@ -1,6 +1,6 @@
 # GN Webhooks Pipeline
 
-A high-performance webhook processing pipeline that receives webhooks, queues them in Redis, and streams them to Kafka/StreamNative with AVRO serialization and schema registry integration. Features enterprise-grade error handling with Dead Letter Queue (DLQ) for failed messages.
+A high-performance webhook processing pipeline that receives webhooks, queues them in Redis, and streams them to Kafka/StreamNative with Schema Registry integration. Features enterprise-grade error handling with Dead Letter Queue (DLQ) for failed messages.
 
 ✅ **Production-tested**: Successfully processed 500,000+ messages with 100% reliability
 ⚡ **High throughput**: Optimized for 70+ messages/second with batching and compression
@@ -36,7 +36,7 @@ Example:
     ↓
 🔴 Redis (Message Queue)
     ↓
-📤 AVRO Producer (Schema Registry + Kafka)
+📤 Schema Registry Producer (Kafka)
     ↓
 ☁️ StreamNative Kafka Cluster
     ↓
@@ -47,7 +47,7 @@ Example:
 
 ### ✅ What's Working
 - **High-throughput webhook processing**: 70+ msg/sec with optimized batching
-- **AVRO serialization**: Dynamic schema fetching with Schema Registry integration
+- **Schema Registry integration**: Dynamic schema fetching and JSON validation
 - **Dead Letter Queue**: Comprehensive error capture with detailed metadata
 - **StreamNative/Pulsar**: Full Kafka producer API compatibility with JWT auth
 - **Redis queue**: Efficient message buffering between receiver and producer

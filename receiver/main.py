@@ -26,7 +26,6 @@ async def webhook(request: Request):
     This avoids unnecessary JSON parsing/serialization.
     """
     try:
-        # Get the raw body as bytes
         body = await request.body()
         
         # Quick validation that it's valid JSON (optional)
@@ -38,8 +37,6 @@ async def webhook(request: Request):
         
         print(f"Received webhook: {len(body)} bytes")
 
-        # Push the raw JSON string directly to Redis
-        # decode() converts bytes to string for Redis
         r.lpush('webhook_queue', body.decode('utf-8'))
         print("Pushed raw event to Redis queue.")
     except redis.exceptions.ConnectionError as e:
