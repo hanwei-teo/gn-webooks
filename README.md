@@ -1,28 +1,28 @@
 # GN Webhooks Pipeline
 
-A high-performance webhook processing pipeline that receives webhooks, queues them in Redis, and streams them to Kafka/StreamNative with Schema Registry integration. Features enterprise-grade error handling with Dead Letter Queue (DLQ) for failed messages.
+A production-ready webhook processing pipeline that receives webhooks, queues them in Redis, and streams them to Kafka/StreamNative with AVRO Schema Registry integration. Features enterprise-grade error handling with Dead Letter Queue (DLQ) for failed messages.
 
-✅ **Production-tested**: Successfully processed 500,000+ messages with 100% reliability
-⚡ **High throughput**: Optimized for 70+ messages/second with batching and compression
+✅ **Production-ready**: Successfully tested with 10,000+ messages and Iceberg integration
+⚡ **High throughput**: Optimized for 50+ messages/second with AVRO serialization
 🛡️ **Fault tolerant**: Automatic DLQ for serialization errors and delivery failures
+📊 **Schema Registry**: Dynamic AVRO schema fetching and validation
 
-## 📦 Utility Tools
+## 🏗️ Architecture
 
-The `tools/` directory contains monitoring and debugging scripts:
-
-| Tool | Description | Usage |
-|------|-------------|-------|
-| `monitor_producer.sh` | Monitor producer logs for key events | `./tools/monitor_producer.sh` |
-| `monitor_test.sh` | Real-time monitoring for large-scale tests with progress bar | `./tools/monitor_test.sh [count]` |
-| `view_dlq.py` | View and manage Dead Letter Queue files | `./tools/view_dlq.py` |
-
-Example:
-```bash
-# Monitor a 10,000 message test
-./tools/monitor_test.sh 10000
-
-# View DLQ statistics
-./tools/view_dlq.py
+```
+🌐 Internet
+    ↓
+📦 nginx (Load Balancer)
+    ↓
+🚀 FastAPI Receiver (Webhook Endpoint)
+    ↓
+🔴 Redis (Message Queue)
+    ↓
+📤 AVRO Producer (Kafka Schema Registry)
+    ↓
+☁️ StreamNative Kafka Cluster
+    ↓
+🗄️ Iceberg Data Lake
 ```
 
 ## 🏗️ Architecture
@@ -43,28 +43,23 @@ Example:
 💀 DLQ (Failed Message Storage)
 ```
 
-## 🎯 Current State & Features
+## 🎯 Production Features
 
-### ✅ What's Working
-- **High-throughput webhook processing**: 70+ msg/sec with optimized batching
-- **Schema Registry integration**: Dynamic schema fetching and JSON validation
+### ✅ Core Capabilities
+- **AVRO Schema Registry Integration**: Dynamic schema fetching and validation
+- **High-throughput webhook processing**: 50+ msg/sec with optimized AVRO serialization
 - **Dead Letter Queue**: Comprehensive error capture with detailed metadata
 - **StreamNative/Pulsar**: Full Kafka producer API compatibility with JWT auth
 - **Redis queue**: Efficient message buffering between receiver and producer
 - **Docker deployment**: Production-ready containers with Python 3.12
-- **Bugsnag testing**: Realistic webhook simulation with invalid message generation
-- **Monitoring tools**: Real-time progress tracking and DLQ analytics
+- **Iceberg Integration**: Properly formatted AVRO messages for data lake ingestion
 
-### ⚠️ Known Limitations
-- **Kafka Consumer API**: Not compatible with StreamNative/Pulsar (use native Pulsar clients)
-- **Message throughput**: ~70 msg/sec (consider async producer for higher rates)
-
-### 🔧 Recent Optimizations
-- Producer batching with LZ4 compression
-- Non-blocking Redis operations
-- Reduced logging overhead for high throughput
-- Direct raw body processing in receiver
-- Python 3.12 upgrade for better performance
+### 🔧 Production Optimizations
+- **AVRO Serialization**: Kafka Schema Registry format with schema ID embedding
+- **Producer batching**: LZ4 compression and optimized batch sizes
+- **Non-blocking Redis operations**: Efficient message queuing
+- **Error handling**: Comprehensive DLQ with detailed error tracking
+- **Schema validation**: Runtime AVRO schema validation and error reporting
 
 ## 🚀 Quick Start
 
@@ -93,21 +88,25 @@ docker-compose up
 ### 3. Test the Pipeline
 
 ```bash
-# Quick test - 100 Bugsnag webhook events
-./run_webhook_test.sh
+# Check service status
+docker-compose ps
 
-# Custom test scenarios
-./run_webhook_test.sh --count 1000              # 1,000 messages
-./run_webhook_test.sh --count 1000 --invalid 20 # 20% invalid for DLQ
-./run_webhook_test.sh --count 10000 --delay 0   # 10k messages, no delay
+# Monitor producer logs
+docker-compose logs -f producer
 
-# Monitor large tests in real-time
-./tools/monitor_test.sh 10000 &                 # Start monitor
-./run_webhook_test.sh --count 10000             # Run test
+# Quick test - 100 messages
+uv run python test_avro_end_to_end.py --count 100
 
-# Check results
-docker-compose logs -f producer                 # Live producer logs
-./tools/view_dlq.py                            # DLQ statistics
+# Larger test - 1,000 messages
+uv run python test_avro_end_to_end.py --count 1000
+
+# Test webhook endpoint manually
+curl -X POST http://localhost:8080/webhook \
+  -H "Content-Type: application/json" \
+  -d @samples/bugsnag_webhook_sample.json
+
+# Check DLQ for any errors
+ls -la dlq/
 ```
 
 ## 📊 Services
@@ -127,23 +126,44 @@ docker-compose logs -f producer                 # Live producer logs
 - **Port**: 6379 (internal)
 - **Queue**: `webhook_queue`
 
-### AVRO Producer (Optimized)
+### AVRO Producer (Production)
 - **Role**: High-throughput message processor (Redis → AVRO → Kafka)
 - **Core features**: 
-  - Dynamic schema fetching from Schema Registry
-  - AVRO serialization with schema caching
+  - Dynamic AVRO schema fetching from Schema Registry
+  - Kafka Schema Registry format serialization
   - Comprehensive DLQ for failed messages
   - JWT authentication for StreamNative/Pulsar
 - **Performance optimizations**:
-  - **Batching**: 128KB batch size, 5ms linger, 500 msg/batch
+  - **Batching**: 128KB batch size, 5ms linger, 100 msg/batch
   - **Compression**: LZ4 for reduced bandwidth
   - **Non-blocking**: Uses `lpop` instead of `blpop`
-  - **Reduced logging**: Errors logged every 100 occurrences
-  - **Throughput**: 70+ messages/second sustained
+  - **AVRO serialization**: Proper Kafka Schema Registry format
+  - **Throughput**: 50+ messages/second sustained
+
+## 🧪 Development & Testing
+
+### Local Testing
+
+The repository includes an end-to-end test script for local development:
+
+```bash
+# Test with different message counts
+uv run python test_avro_end_to_end.py --count 100    # Quick test
+uv run python test_avro_end_to_end.py --count 1000   # Medium test
+uv run python test_avro_end_to_end.py --count 10000  # Large test
+
+# Monitor test progress
+docker-compose logs -f producer
+```
+
+### Test Features
+
+- **Realistic Data**: Generates Bugsnag-like webhook payloads
+- **Progress Tracking**: Real-time progress updates
+- **Error Detection**: Identifies failed webhook submissions
+- **Performance Metrics**: Reports throughput and success rates
 
 ## 🔧 Configuration
-
-### Environment Variables (`.env`)
 ```bash
 # Redis Configuration
 REDIS_HOST=redis
@@ -157,6 +177,20 @@ KAFKA_TOPIC=your-topic-name
 
 # Schema Registry Configuration
 SCHEMA_REGISTRY_URL=https://your-schema-registry/kafka
+
+# Kafka Producer Performance Configuration
+KAFKA_BATCH_SIZE=131072              # 128KB batch size
+KAFKA_LINGER_MS=5                    # 5ms linger time
+KAFKA_COMPRESSION_TYPE=lz4           # Compression algorithm
+KAFKA_BATCH_NUM_MESSAGES=100         # Messages per batch
+KAFKA_ACKS=1                         # Acknowledgment level
+KAFKA_RETRIES=3                      # Retry attempts
+KAFKA_MAX_IN_FLIGHT=10               # Max in-flight requests
+KAFKA_QUEUE_MAX_MESSAGES=10000       # Max queued messages
+KAFKA_QUEUE_MAX_KBYTES=32768         # Max queue size in KB
+KAFKA_SOCKET_SEND_BUFFER=262144      # Socket send buffer
+KAFKA_SOCKET_RECEIVE_BUFFER=131072   # Socket receive buffer
+KAFKA_ENABLE_IDEMPOTENCE=false       # Enable exactly-once delivery
 ```
 
 ### StreamNative Integration

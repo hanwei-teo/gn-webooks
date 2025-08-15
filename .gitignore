@@ -7,9 +7,22 @@ wheels/
 *.egg-info
 
 # Virtual environments
-.venv
-.env
 .venv/
-dlq/
+.env
+
+# Production data
+dlq/*.json
 *.log
+
+# System files
 .DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+.dockerignore

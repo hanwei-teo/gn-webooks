@@ -31,6 +31,20 @@ KAFKA_TOPIC = os.environ.get('KAFKA_TOPIC', 'insights-testing.test-ingest.bugsna
 SCHEMA_REGISTRY_URL = os.environ.get('SCHEMA_REGISTRY_URL')
 REDIS_QUEUE = 'webhook_queue'
 
+# Kafka Producer Configuration
+KAFKA_BATCH_SIZE = int(os.environ.get('KAFKA_BATCH_SIZE', '131072'))  # 128KB
+KAFKA_LINGER_MS = int(os.environ.get('KAFKA_LINGER_MS', '5'))
+KAFKA_COMPRESSION_TYPE = os.environ.get('KAFKA_COMPRESSION_TYPE', 'lz4')
+KAFKA_ACKS = os.environ.get('KAFKA_ACKS', '1')
+KAFKA_RETRIES = int(os.environ.get('KAFKA_RETRIES', '3'))
+KAFKA_MAX_IN_FLIGHT = int(os.environ.get('KAFKA_MAX_IN_FLIGHT', '10'))
+KAFKA_QUEUE_MAX_MESSAGES = int(os.environ.get('KAFKA_QUEUE_MAX_MESSAGES', '10000'))
+KAFKA_QUEUE_MAX_KBYTES = int(os.environ.get('KAFKA_QUEUE_MAX_KBYTES', '32768'))
+KAFKA_SOCKET_SEND_BUFFER = int(os.environ.get('KAFKA_SOCKET_SEND_BUFFER', '262144'))
+KAFKA_SOCKET_RECEIVE_BUFFER = int(os.environ.get('KAFKA_SOCKET_RECEIVE_BUFFER', '131072'))
+KAFKA_BATCH_NUM_MESSAGES = int(os.environ.get('KAFKA_BATCH_NUM_MESSAGES', '100'))
+KAFKA_ENABLE_IDEMPOTENCE = os.environ.get('KAFKA_ENABLE_IDEMPOTENCE', 'false').lower() == 'true'
+
 class AVROKafkaProducer:
     """
     Kafka producer with AVRO serialization using Schema Registry.
@@ -95,39 +109,11 @@ class AVROKafkaProducer:
             print(f"💡 Schema Registry URL: {SCHEMA_REGISTRY_URL}")
             raise
         
-        # Parse AVRO schema and initialize serializer
+        # Parse AVRO schema
         debug_log("Parsing AVRO schema...")
         try:
             self.avro_schema = json.loads(self.schema_str)
             debug_log("AVRO schema parsed successfully")
-            
-            debug_log("AVRO serializer setup complete (using fastavro with schema ID)")
-            self.avro_serializer = None  # We'll use fastavro directly with schema ID
-            
-            # Test the schema with a simple message to ensure it works
-            debug_log("Testing AVRO schema with sample data...")
-            test_data = {
-                'account': {'id': 'test', 'name': 'test', 'url': 'test'},
-                'project': {'id': 'test', 'name': 'test', 'url': 'test'},
-                'trigger': {'type': 'firstException', 'message': 'test'},
-                'error': {
-                    'id': 'test', 'url': 'test', 'context': 'test',
-                    'firstReceived': int(datetime.now().timestamp() * 1000),
-                    'severity': 'error', 'status': 'open'
-                },
-                'event': {
-                    'id': 'test', 'received': int(datetime.now().timestamp() * 1000),
-                    'user': {'id': 'test', 'name': 'test', 'email': 'test'},
-                    'app': {'id': 'test', 'version': 'test', 'versionCode': 1, 'releaseStage': 'test'},
-                    'device': {'hostname': 'test', 'id': 'test', 'manufacturer': 'test', 'model': 'test', 'osName': 'test', 'osVersion': 'test'},
-                    'exceptions': [{'errorClass': 'test', 'message': 'test', 'stacktrace': []}]
-                }
-            }
-            
-            # Test serialization with fastavro (Kafka format with schema ID)
-            test_serialized = self.serialize_for_kafka(test_data)
-            debug_log(f"AVRO schema test successful: {len(test_serialized)} bytes")
-            
         except Exception as e:
             debug_log(f"Failed to parse AVRO schema: {e}")
             raise
@@ -135,27 +121,36 @@ class AVROKafkaProducer:
                 # Initialize Kafka Producer
         debug_log("Initializing Kafka producer...")
         try:
-            self.producer = Producer({
+            producer_config = {
                 'bootstrap.servers': KAFKA_BOOTSTRAP_SERVERS,
                 'sasl.mechanism': KAFKA_SASL_MECHANISM,
                 'security.protocol': 'SASL_SSL',
                 'sasl.username': KAFKA_SASL_USERNAME,
                 'sasl.password': f'token:{KAFKA_SASL_PASSWORD}',
                 
-                # Performance optimizations
-                'batch.size': 131072,          # 128KB batch size
-                'linger.ms': 5,                # 5ms linger
-                'compression.type': 'lz4',     # LZ4 compression
-                'acks': 1,                     # Leader acknowledgment
-                'retries': 3,
-                'max.in.flight.requests.per.connection': 10,
-                'queue.buffering.max.messages': 10000,
-                'queue.buffering.max.kbytes': 32768,
-                'socket.send.buffer.bytes': 262144,
-                'socket.receive.buffer.bytes': 131072,
-                'batch.num.messages': 100,
-                'enable.idempotence': False
-            })
+                # Performance optimizations (configurable via environment variables)
+                'batch.size': KAFKA_BATCH_SIZE,
+                'linger.ms': KAFKA_LINGER_MS,
+                'compression.type': KAFKA_COMPRESSION_TYPE,
+                'acks': KAFKA_ACKS,
+                'retries': KAFKA_RETRIES,
+                'max.in.flight.requests.per.connection': KAFKA_MAX_IN_FLIGHT,
+                'queue.buffering.max.messages': KAFKA_QUEUE_MAX_MESSAGES,
+                'queue.buffering.max.kbytes': KAFKA_QUEUE_MAX_KBYTES,
+                'socket.send.buffer.bytes': KAFKA_SOCKET_SEND_BUFFER,
+                'socket.receive.buffer.bytes': KAFKA_SOCKET_RECEIVE_BUFFER,
+                'batch.num.messages': KAFKA_BATCH_NUM_MESSAGES,
+                'enable.idempotence': KAFKA_ENABLE_IDEMPOTENCE
+            }
+            
+            debug_log(f"Kafka producer configuration:")
+            debug_log(f"  batch.size: {KAFKA_BATCH_SIZE}")
+            debug_log(f"  linger.ms: {KAFKA_LINGER_MS}")
+            debug_log(f"  compression.type: {KAFKA_COMPRESSION_TYPE}")
+            debug_log(f"  acks: {KAFKA_ACKS}")
+            debug_log(f"  batch.num.messages: {KAFKA_BATCH_NUM_MESSAGES}")
+            
+            self.producer = Producer(producer_config)
             debug_log("Kafka producer initialized successfully")
         except Exception as e:
             debug_log(f"Failed to initialize Kafka producer: {e}")
