@@ -1,0 +1,381 @@
+{
+  "type": "record",
+  "name": "BugsnagWebhook",
+  "namespace": "com.bugsnag.webhook",
+  "fields": [
+    {
+      "name": "account",
+      "type": {
+        "type": "record",
+        "name": "Account",
+        "namespace": "com.bugsnag.webhook",
+        "fields": [
+          {
+            "name": "id",
+            "type": "string",
+            "doc": "Unique identifier for the account"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "doc": "Display name of the account"
+          },
+          {
+            "name": "url",
+            "type": "string",
+            "doc": "URL to the account in Bugsnag"
+          }
+        ]
+      },
+      "doc": "Account information"
+    },
+    {
+      "name": "project",
+      "type": {
+        "type": "record",
+        "name": "Project",
+        "namespace": "com.bugsnag.webhook",
+        "fields": [
+          {
+            "name": "id",
+            "type": "string",
+            "doc": "Unique identifier for the project"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "doc": "Display name of the project"
+          },
+          {
+            "name": "url",
+            "type": "string",
+            "doc": "URL to the project in Bugsnag"
+          }
+        ]
+      },
+      "doc": "Project information"
+    },
+    {
+      "name": "trigger",
+      "type": {
+        "type": "record",
+        "name": "Trigger",
+        "namespace": "com.bugsnag.webhook",
+        "fields": [
+          {
+            "name": "type",
+            "type": {
+              "type": "enum",
+              "name": "TriggerType",
+              "namespace": "com.bugsnag.webhook",
+              "symbols": [
+                "firstException",
+                "newError",
+                "reopenedError",
+                "errorRateSpike",
+                "newSession",
+                "deployment"
+              ],
+              "doc": "Type of trigger that caused the webhook"
+            },
+            "doc": "Type of trigger"
+          },
+          {
+            "name": "message",
+            "type": "string",
+            "doc": "Human-readable message describing the trigger"
+          }
+        ]
+      },
+      "doc": "Trigger information"
+    },
+    {
+      "name": "error",
+      "type": {
+        "type": "record",
+        "name": "Error",
+        "namespace": "com.bugsnag.webhook",
+        "fields": [
+          {
+            "name": "id",
+            "type": "string",
+            "doc": "Unique identifier for the error"
+          },
+          {
+            "name": "url",
+            "type": "string",
+            "doc": "URL to the error in Bugsnag"
+          },
+          {
+            "name": "context",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Context where the error occurred"
+          },
+          {
+            "name": "firstReceived",
+            "type": {
+              "type": "long",
+              "logicalType": "timestamp-millis"
+            },
+            "doc": "Timestamp when the error was first received (milliseconds since epoch)"
+          },
+          {
+            "name": "severity",
+            "type": {
+              "type": "enum",
+              "name": "Severity",
+              "namespace": "com.bugsnag.webhook",
+              "symbols": ["error", "warning", "info"],
+              "doc": "Severity level of the error"
+            },
+            "doc": "Severity of the error"
+          },
+          {
+            "name": "status",
+            "type": {
+              "type": "enum",
+              "name": "ErrorStatus",
+              "namespace": "com.bugsnag.webhook",
+              "symbols": ["open", "ignored", "snoozed", "resolved"],
+              "doc": "Current status of the error"
+            },
+            "doc": "Current status of the error"
+          },
+          {
+            "name": "createdIssue",
+            "type": ["null", {
+              "type": "record",
+              "name": "CreatedIssue",
+              "namespace": "com.bugsnag.webhook",
+              "fields": [
+                {
+                  "name": "id",
+                  "type": "string",
+                  "doc": "Issue identifier in the external system"
+                },
+                {
+                  "name": "number",
+                  "type": "int",
+                  "doc": "Issue number in the external system"
+                },
+                {
+                  "name": "type",
+                  "type": {
+                    "type": "enum",
+                    "name": "IssueType",
+                    "namespace": "com.bugsnag.webhook",
+                    "symbols": ["github", "jira", "bugify", "gitlab", "bitbucket"],
+                    "doc": "Type of issue tracking system"
+                  },
+                  "doc": "Type of issue tracking system"
+                },
+                {
+                  "name": "url",
+                  "type": "string",
+                  "doc": "URL to the issue in the external system"
+                }
+              ]
+            }],
+            "default": null,
+            "doc": "Information about the created issue in external system"
+          }
+        ]
+      },
+      "doc": "Error information"
+    },
+    {
+      "name": "event",
+      "type": {
+        "type": "record",
+        "name": "Event",
+        "namespace": "com.bugsnag.webhook",
+        "fields": [
+          {
+            "name": "id",
+            "type": "string",
+            "doc": "Unique identifier for the event"
+          },
+          {
+            "name": "received",
+            "type": {
+              "type": "long",
+              "logicalType": "timestamp-millis"
+            },
+            "doc": "Timestamp when the event was received (milliseconds since epoch)"
+          },
+          {
+            "name": "user",
+            "type": ["null", {
+              "type": "record",
+              "name": "User",
+              "namespace": "com.bugsnag.webhook",
+              "fields": [
+                {
+                  "name": "id",
+                  "type": "string",
+                  "doc": "User identifier"
+                },
+                {
+                  "name": "name",
+                  "type": ["null", "string"],
+                  "default": null,
+                  "doc": "User's display name"
+                },
+                {
+                  "name": "email",
+                  "type": ["null", "string"],
+                  "default": null,
+                  "doc": "User's email address"
+                }
+              ]
+            }],
+            "default": null,
+            "doc": "User information"
+          },
+          {
+            "name": "app",
+            "type": {
+              "type": "record",
+              "name": "App",
+              "namespace": "com.bugsnag.webhook",
+              "fields": [
+                {
+                  "name": "id",
+                  "type": "string",
+                  "doc": "Application identifier"
+                },
+                {
+                  "name": "version",
+                  "type": ["null", "string"],
+                  "default": null,
+                  "doc": "Application version"
+                },
+                {
+                  "name": "versionCode",
+                  "type": ["null", "int"],
+                  "default": null,
+                  "doc": "Application version code"
+                },
+                {
+                  "name": "releaseStage",
+                  "type": ["null", "string"],
+                  "default": null,
+                  "doc": "Release stage (e.g., development, staging, production)"
+                }
+              ]
+            },
+            "doc": "Application information"
+          },
+          {
+            "name": "device",
+            "type": ["null", {
+              "type": "record",
+              "name": "Device",
+              "namespace": "com.bugsnag.webhook",
+              "fields": [
+                {
+                  "name": "hostname",
+                  "type": ["null", "string"],
+                  "default": null,
+                  "doc": "Device hostname"
+                },
+                {
+                  "name": "id",
+                  "type": ["null", "string"],
+                  "default": null,
+                  "doc": "Device identifier"
+                },
+                {
+                  "name": "manufacturer",
+                  "type": ["null", "string"],
+                  "default": null,
+                  "doc": "Device manufacturer"
+                },
+                {
+                  "name": "model",
+                  "type": ["null", "string"],
+                  "default": null,
+                  "doc": "Device model"
+                },
+                {
+                  "name": "osName",
+                  "type": ["null", "string"],
+                  "default": null,
+                  "doc": "Operating system name"
+                },
+                {
+                  "name": "osVersion",
+                  "type": ["null", "string"],
+                  "default": null,
+                  "doc": "Operating system version"
+                }
+              ]
+            }],
+            "default": null,
+            "doc": "Device information"
+          },
+          {
+            "name": "exceptions",
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "record",
+                "name": "Exception",
+                "namespace": "com.bugsnag.webhook",
+                "fields": [
+                  {
+                    "name": "errorClass",
+                    "type": "string",
+                    "doc": "Error class name"
+                  },
+                  {
+                    "name": "message",
+                    "type": ["null", "string"],
+                    "default": null,
+                    "doc": "Error message"
+                  },
+                  {
+                    "name": "stacktrace",
+                    "type": {
+                      "type": "array",
+                      "items": {
+                        "type": "record",
+                        "name": "StackFrame",
+                        "namespace": "com.bugsnag.webhook",
+                        "fields": [
+                          {
+                            "name": "file",
+                            "type": ["null", "string"],
+                            "default": null,
+                            "doc": "Source file name"
+                          },
+                          {
+                            "name": "lineNumber",
+                            "type": ["null", "int"],
+                            "default": null,
+                            "doc": "Line number in the source file"
+                          },
+                          {
+                            "name": "method",
+                            "type": ["null", "string"],
+                            "default": null,
+                            "doc": "Method name"
+                          }
+                        ]
+                      }
+                    },
+                    "doc": "Stack trace frames"
+                  }
+                ]
+              }
+            },
+            "doc": "Array of exceptions"
+          }
+        ]
+      },
+      "doc": "Event information"
+    }
+  ],
+  "doc": "Bugsnag webhook payload schema with logical types for datetime support"
+}

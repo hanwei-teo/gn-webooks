@@ -15,10 +15,10 @@ RUN pip install uv
 
 WORKDIR /app
 
-# Install Python dependencies
-RUN uv pip install --system confluent-kafka==2.5.0 redis==5.0.1 jsonschema==4.25.0 requests==2.31.0
+# Install Python dependencies for AVRO producer
+RUN uv pip install --system confluent-kafka==2.5.0 redis==5.0.1 requests==2.31.0 fastavro==1.9.4
 
-# Copy the Schema Registry producer
+# Copy the producer
 COPY producer.py producer.py
 
 # Create DLQ directory

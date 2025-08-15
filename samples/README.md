@@ -5,7 +5,7 @@ This directory contains sample JSON payloads and test data for various webhook i
 ## Files
 
 ### `bugsnag_webhook_sample.json`
-A sample Bugsnag webhook payload that conforms to the JSON schema defined in `schemas/bugsnag_webhook_schema.json`.
+A sample Bugsnag webhook payload that conforms to the AVRO schema defined in `bugsnag_avro_schema.json`.
 
 **Structure:**
 - `account`: Company/account information
@@ -22,14 +22,14 @@ import json
 with open('samples/bugsnag_webhook_sample.json', 'r') as f:
     sample_payload = json.load(f)
 
-# Use for testing or as a template
+# Use for testing or as a template for AVRO validation
 ```
 
 ## Testing
 
-The sample payload is used by `test_json_schema.py` to validate that the JSON schema is working correctly.
+The sample payload is used by `test_avro_schema_validation.py` to validate that the AVRO schema is working correctly.
 
 Run the test:
 ```bash
-uv run python test_json_schema.py
+uv run python test_avro_schema_validation.py
 ```
