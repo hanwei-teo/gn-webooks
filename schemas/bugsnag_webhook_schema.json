@@ -1,0 +1,133 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Bugsnag Webhook Payload",
+  "description": "JSON Schema for the Bugsnag data forwarding webhook payload",
+  "type": "object",
+  "required": [
+    "account",
+    "project",
+    "trigger",
+    "error",
+    "event"
+  ],
+  "properties": {
+    "account": { "$ref": "#/definitions/Account" },
+    "project": { "$ref": "#/definitions/Project" },
+    "trigger": { "$ref": "#/definitions/Trigger" },
+    "error": { "$ref": "#/definitions/Error" },
+    "event": { "$ref": "#/definitions/Event" }
+  },
+  "definitions": {
+    "Account": {
+      "type": "object",
+      "required": ["id", "name", "url"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "url": { "type": "string", "format": "uri" }
+      }
+    },
+    "Project": {
+      "type": "object",
+      "required": ["id", "name", "url"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "url": { "type": "string", "format": "uri" }
+      }
+    },
+    "Trigger": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "Error": {
+      "type": "object",
+      "required": ["id", "url", "context", "firstReceived", "severity", "status"],
+      "properties": {
+        "id": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "context": { "type": "string" },
+        "firstReceived": { "type": "string", "format": "date-time" },
+        "severity": { "type": "string", "enum": ["error", "warning", "info"] },
+        "status": { "type": "string" },
+        "createdIssue": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "number": { "type": "integer" },
+            "type": { "type": "string" },
+            "url": { "type": "string", "format": "uri" }
+          }
+        }
+      }
+    },
+    "Event": {
+      "type": "object",
+      "required": ["id", "received", "exceptions"],
+      "properties": {
+        "id": { "type": "string" },
+        "received": { "type": "string", "format": "date-time" },
+        "user": { "$ref": "#/definitions/User" },
+        "app": { "$ref": "#/definitions/App" },
+        "device": { "$ref": "#/definitions/Device" },
+        "exceptions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Exception" }
+        }
+      }
+    },
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" }
+      }
+    },
+    "App": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "version": { "type": "string" },
+        "versionCode": { "type": "integer" },
+        "releaseStage": { "type": "string" }
+      }
+    },
+    "Device": {
+      "type": "object",
+      "properties": {
+        "hostname": { "type": "string" },
+        "id": { "type": "string" },
+        "manufacturer": { "type": "string" },
+        "model": { "type": "string" },
+        "osName": { "type": "string" },
+        "osVersion": { "type": "string" }
+      }
+    },
+    "Exception": {
+      "type": "object",
+      "required": ["errorClass", "stacktrace"],
+      "properties": {
+        "errorClass": { "type": "string" },
+        "message": { "type": "string" },
+        "stacktrace": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/StackFrame" }
+        }
+      }
+    },
+    "StackFrame": {
+      "type": "object",
+      "required": ["file", "lineNumber", "method"],
+      "properties": {
+        "file": { "type": "string" },
+        "lineNumber": { "type": "integer" },
+        "method": { "type": "string" }
+      }
+    }
+  }
+}

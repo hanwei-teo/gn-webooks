@@ -1,0 +1,50 @@
+services:
+  # 1. Load Balancer
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - "8080:80" # Expose port 8080 on the host, forwarding to port 80 in the container.
+    depends_on:
+      - receiver
+    networks:
+      - app-network
+
+  # 2. Webhook Receiver Fleet (Python FastAPI App)
+  receiver:
+    build:
+      context: ./receiver
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    networks:
+      - app-network
+
+  # 3. In-Memory Queue
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  # 4. Kafka Producer Service (Python App)
+  producer:
+    build:
+      context: ./producer
+    depends_on:
+      - redis
+    # Environment variables loaded from .env file
+    env_file:
+      - .env
+    volumes:
+      - ./dlq:/app/dlq  # Mount DLQ directory for failed messages
+    networks:
+      - app-network
+  
+
+
+networks:
+  app-network:
+    driver: bridge
