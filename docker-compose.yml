@@ -29,10 +29,11 @@ services:
     networks:
       - app-network
 
-  # 4. Kafka Producer Service (Python App)
+  # 4. Kafka Producer Service (JSON Schema Python App)
   producer:
     build:
       context: ./producer
+      dockerfile: Dockerfile.json_schema
     depends_on:
       - redis
     # Environment variables loaded from .env file

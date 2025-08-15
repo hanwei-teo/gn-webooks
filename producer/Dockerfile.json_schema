@@ -1,0 +1,27 @@
+FROM python:3.12-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    libsasl2-dev \
+    libsasl2-2 \
+    libsasl2-modules \
+    librdkafka-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+RUN pip install uv
+
+WORKDIR /app
+
+# Install Python dependencies
+RUN uv pip install --system confluent-kafka==2.5.0 redis==5.0.1 jsonschema==4.25.0
+
+# Copy the JSON Schema producer
+COPY producer_json_schema.py producer.py
+
+# Create DLQ directory
+RUN mkdir -p /app/dlq
+
+CMD ["python", "producer.py"]
